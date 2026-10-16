@@ -51,3 +51,34 @@ Choose `code_helper`, click **New Session** and ask a question. You also need No
 **Problem:** The agents looped, called tools again and again, and gave wrong answers. The tools worked fine alone, so the cause was the small default chat model (`llama-3.2-11b-vision-instruct`). A bigger model I tried first had been retired (error 410).
 
 **Fix:** I tightened the agent instructions (call the tool once, answer only from its result), listed the models my NVIDIA key could really use, and set `NVIDIA_CHAT_MODEL=nvidia/nemotron-3-super-120b-a12b` in `.env`.
+
+## Architecture
+
+### How the agents work
+
+```mermaid
+flowchart LR
+  U["User question"] --> C["coordinator"]
+  C --> S["code_searcher"]
+  C --> E["code_explainer"]
+  C --> M["architecture_mapper"]
+  C --> G["onboarding_guide"]
+  S --> T1["rag_search (Pinecone)"]
+  E --> T2["Filesystem MCP: list_directory, read_file"]
+  M --> T3["find_importers, list_files_and_functions, build_architecture_diagram"]
+  G --> T4["get_project_overview"]
+```
+
+### How the Naive_RAG files connect
+
+```mermaid
+flowchart LR
+  indexer --> config
+  indexer --> vector_store
+  main --> config
+  main --> indexer
+  main --> query_pipeline
+  query_pipeline --> config
+  query_pipeline --> vector_store
+  vector_store --> config
+```
